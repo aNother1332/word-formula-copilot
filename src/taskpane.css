@@ -220,6 +220,9 @@ kbd {
 .latex-edit:focus { background: var(--fill); }
 
 .insert-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.scope-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 0 2px; }
+.scope-label { font-size: 12px; font-weight: 500; color: var(--label-2); }
+.scope-row .mini-seg button { min-width: 58px; text-align: center; }
 .mini-seg {
   position: relative; display: flex;
   background: var(--fill); border-radius: 8px; padding: 2px;

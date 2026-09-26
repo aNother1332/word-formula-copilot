@@ -31,11 +31,6 @@ await page.evaluate(() => {
   document.getElementById('math-preview').innerHTML =
     temml.renderToString(latex, { displayMode: true });
   document.getElementById('btn-copy').hidden = false;
-  const seg = document.getElementById('insert-mode-seg');
-  const active = seg.querySelector('.is-active');
-  const th = document.getElementById('insert-thumb');
-  th.style.width = active.offsetWidth + 'px';
-  th.style.transform = 'translateX(' + (active.offsetLeft - 2) + 'px)';
 });
 await sleep(400);
 await page.screenshot({ path: 'docs/screenshots/describe.png' });

@@ -7,7 +7,7 @@
   xsi:type="TaskPaneApp">
 
   <Id>14926cb1-0fa6-4075-bac1-04a38d502571</Id>
-  <Version>1.0.1.0</Version>
+  <Version>1.1.0.0</Version>
   <ProviderName>Formula Copilot</ProviderName>
   <DefaultLocale>zh-CN</DefaultLocale>
   <DisplayName DefaultValue="公式助手" />

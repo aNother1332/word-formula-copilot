@@ -1,4 +1,5 @@
 import { mml2omml } from './vendor/mml2omml.js';
+import { fullTextToHtml } from './fulltext.js';
 
 /* ================= 常量 ================= */
 
@@ -20,6 +21,12 @@ const VISION_SYSTEM =
   '2) 使用标准 LaTeX（amsmath）语法，如 \\frac{}{}、\\sqrt[]{}、^、_；' +
   '3) 只输出一个公式（一行）；4) 严格保持原公式的结构与符号，不要化简。';
 
+const VISION_FULL_SYSTEM =
+  '你是笔记转录助手。把图片中的内容整理为可编辑文本，公式一律转写为 LaTeX。' +
+  '要求：1) 保留图片中的段落结构与文字顺序，不要增删内容，不要解释、不要总结；' +
+  '2) 行内公式用 $...$ 包裹，独立成行的公式用 $$...$$ 包裹，公式内部使用标准 LaTeX（amsmath）语法；' +
+  '3) 文字部分保持原文语言；4) 数学符号（分数、上下标、根号等）一律写在公式里，不要用文字描述。';
+
 const NL_SYSTEM =
   '你是数学排版助手。把用户的自然语言描述转换为一个 LaTeX 表达式（标准 LaTeX/amsmath 语法）。' +
   '只输出 LaTeX 代码本身，不要解释、不要定界符。' +
@@ -34,7 +41,7 @@ const store = {
   config: { provider: 'deepseek', baseUrl: '', apiKey: '', visionModel: '', textModel: '' },
   stats: { total: 0, requests: 0 },
   session: { total: 0, requests: 0 },
-  insertMode: 'block',
+  scope: 'formula',
   mode: 'image',
   image: null, // { dataUrl, base64 }
   result: null, // { latex, tokens, source }
@@ -56,7 +63,6 @@ const els = {
   nlInput: $('nl-input'),
   result: $('result'), resultTitle: $('result-title'), resultMeta: $('result-meta'),
   mathPreview: $('math-preview'), latexEdit: $('latex-edit'),
-  insertSeg: $('insert-mode-seg'),
   btnInsert: $('btn-insert'), btnInsertLabel: $('btn-insert').querySelector('.btn-label'),
   btnSpinner: $('btn-insert').querySelector('.btn-spinner'),
   btnCopy: $('btn-copy'), btnRerun: $('btn-rerun'),
@@ -65,7 +71,7 @@ const els = {
   cfgProvider: $('cfg-provider'), cfgBaseurl: $('cfg-baseurl'), cfgKey: $('cfg-key'),
   cfgVmodel: $('cfg-vmodel'), cfgTmodel: $('cfg-tmodel'),
   testResult: $('test-result'), btnTest: $('btn-test'),
-  insertThumb: $('insert-thumb'),
+  scopeSeg: $('scope-seg'), scopeThumb: $('scope-thumb'), scopeRow: $('scope-row'),
   insertDiag: $('insert-diag'), insertDiagLines: $('insert-diag-lines'),
   diagLines: $('diag-lines'),
   toastHost: $('toast-host'),
@@ -331,6 +337,15 @@ function cleanLatex(raw) {
   return s.replace(/\s+/g, ' ').trim();
 }
 
+// 全文模式：规范化模型输出（去代码块围栏，把 \( \) \[ \] 统一成 $ $$ 定界）
+function normalizeFullText(raw) {
+  let s = String(raw || '').trim();
+  s = s.replace(/^```(?:markdown|md|text)?\s*/i, '').replace(/```\s*$/, '');
+  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_, x) => '$' + x.trim() + '$');
+  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_, x) => '$$' + x.trim() + '$$');
+  return s.trim();
+}
+
 /* ================= LaTeX → OMML ================= */
 
 function latexToOmml(latex, mode) {
@@ -448,17 +463,17 @@ function ssHtml(html) {
   });
 }
 
-// 插入总调度：OOXML 通道（真行内）与 HTML+MathML 通道（Word 自动转公式）按环境择优
-async function insertFormulaSmart(latex, mode) {
+// 仅公式插入：OOXML 通道（部分构建可用）与 HTML+MathML 通道（Word 原生转换）按环境择优
+async function insertFormulaOnly(content) {
   let oMath = null;
-  try { oMath = latexToOmml(latex, mode); }
+  try { oMath = latexToOmml(content, 'block'); }
   catch (e) { return { how: 'convert-error', err: e.message }; }
   let html = null;
-  try { html = htmlOf(latex, mode); } catch (e) { html = null; }
+  try { html = htmlOf(content, 'block'); } catch (e) { html = null; }
 
   const preferHtml = storage.get('fc.insertChannel') === 'html';
   const tryOoxml = async () => {
-    const r = await insertOoxmlSmart(oMath, mode);
+    const r = await insertOoxmlSmart(oMath, 'block');
     if (r) storage.set('fc.insertChannel', 'ooxml');
     return r;
   };
@@ -486,26 +501,42 @@ async function insertFormulaSmart(latex, mode) {
 async function insertResult() {
   const result = store.result;
   if (!result) return;
-  const latex = els.latexEdit.value.trim();
-  if (!latex) { toast('error', 'LaTeX 内容为空'); return; }
+  const content = els.latexEdit.value.trim();
+  if (!content) { toast('error', '内容为空'); return; }
 
   if (!store.officeReady) { toast('info', '浏览器预览模式：跳过插入 Word'); return; }
 
   setInsertBusy(true);
   els.insertDiag.hidden = true;
   try {
-    const r = await insertFormulaSmart(latex, store.insertMode);
+    if (store.scope === 'full') {
+      // 全文：文字 + MathML 内联公式，经 HTML 通道写入（Word 自动转换为公式对象）
+      let html;
+      try { html = fullTextToHtml(content, (l, dm) => temml.renderToString(l, { displayMode: dm })); }
+      catch (e) { toast('error', '内容转换失败：' + e.message); return; }
+      if (await ssHtml(html)) {
+        toast('success', '已插入全文（公式已转换为公式对象）');
+      } else {
+        showInsertDiag(['HTML 通道失败: ' + lastSetSelectedError]);
+        await new Promise((resolve) => {
+          Office.context.document.setSelectedDataAsync(content, { coercionType: Office.CoercionType.Text }, () => resolve());
+        });
+        toast('error', '插入失败，已退化为纯文本（详见卡片下方的诊断信息）', 6000);
+      }
+      return;
+    }
+    const r = await insertFormulaOnly(content);
     if (r.how === 'convert-error') {
       toast('error', 'LaTeX 转换失败：' + r.err);
     } else if (r.how === 'ok') {
-      toast('success', store.insertMode === 'inline' ? '已插入行内公式' : '已插入单行公式');
+      toast('success', '已插入单行公式');
     } else if (r.how === 'degraded') {
       toast('info', '已作为独立段落插入（当前版本不支持行内插入）');
     } else {
       showInsertDiag(diag.insert.slice(0, 6));
       // 最终兜底：插入 LaTeX 文本 + 提示 Alt+=
       await new Promise((resolve) => {
-        Office.context.document.setSelectedDataAsync(latex, { coercionType: Office.CoercionType.Text }, () => resolve());
+        Office.context.document.setSelectedDataAsync(content, { coercionType: Office.CoercionType.Text }, () => resolve());
       });
       toast('error', '公式对象插入失败，已退化为插入 LaTeX 文本（详见卡片下方的诊断信息）', 6000);
     }
@@ -524,8 +555,12 @@ function setInsertBusy(busy) {
 
 function showResult({ latex, tokens, source }) {
   store.result = { latex, tokens, source };
-  els.resultTitle.textContent = source === '识图' ? '识图结果' : source === '描述' ? '生成结果' : 'LaTeX';
+  els.resultTitle.textContent = source === '识图' ? '识图结果'
+    : source === '描述' ? '生成结果'
+    : source === '全文' ? '全文结果'
+    : 'LaTeX';
   els.latexEdit.value = latex;
+  els.latexEdit.rows = store.scope === 'full' ? 6 : 2;
   els.resultMeta.textContent = tokens ? `${tokens} tokens` : '';
   els.btnCopy.hidden = false;
   els.btnRerun.hidden = !(source === '识图' && store.image);
@@ -533,11 +568,6 @@ function showResult({ latex, tokens, source }) {
     els.result.hidden = false;
     fadeIn(els.result, { opacity: 0, transform: 'translateY(14px) scale(0.97)' });
   }
-  // 结果卡片刚显示时，mini 分段控件的指示条需要重新测量定位
-  requestAnimationFrame(() => {
-    const active = els.insertSeg.querySelector('.is-active');
-    if (active) positionSegThumb(els.insertSeg, els.insertThumb, active);
-  });
   renderPreview(true);
   els.result.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'nearest' });
 }
@@ -545,12 +575,16 @@ function showResult({ latex, tokens, source }) {
 let previewTimer = 0;
 function renderPreview(immediate = false) {
   const run = () => {
-    const latex = els.latexEdit.value.trim();
-    if (!latex) { els.mathPreview.innerHTML = ''; return; }
+    const content = els.latexEdit.value.trim();
+    if (!content) { els.mathPreview.innerHTML = ''; return; }
     try {
-      els.mathPreview.innerHTML = temml.renderToString(latex, { displayMode: store.insertMode === 'block' });
+      if (store.scope === 'full') {
+        els.mathPreview.innerHTML = fullTextToHtml(content, (l, dm) => temml.renderToString(l, { displayMode: dm }));
+      } else {
+        els.mathPreview.innerHTML = temml.renderToString(content, { displayMode: true });
+      }
     } catch (e) {
-      els.mathPreview.innerHTML = '<span class="preview-err">LaTeX 语法有误，无法预览（修正后再插入）</span>';
+      els.mathPreview.innerHTML = '<span class="preview-err">' + (store.scope === 'full' ? '内容中部分公式语法有误' : 'LaTeX 语法有误') + '，无法完整预览</span>';
     }
   };
   clearTimeout(previewTimer);
@@ -568,6 +602,7 @@ async function runVision() {
     return;
   }
   store.busy = true;
+  const isFull = store.scope === 'full';
   const t0 = performance.now();
   const tick = setInterval(() => {
     els.imgStatus.textContent = `正在识别… ${((performance.now() - t0) / 1000).toFixed(0)}s`;
@@ -576,26 +611,26 @@ async function runVision() {
   els.btnRerun.disabled = true;
   try {
     const req = () => chat(store.config.visionModel, [
-      { role: 'system', content: VISION_SYSTEM },
+      { role: 'system', content: isFull ? VISION_FULL_SYSTEM : VISION_SYSTEM },
       {
         role: 'user',
         content: [
-          { type: 'text', text: '识别图片中的数学公式并输出 LaTeX。' },
+          { type: 'text', text: isFull ? '转录图片中的内容，公式用 LaTeX 表示。' : '识别图片中的数学公式并输出 LaTeX。' },
           { type: 'image_url', image_url: { url: store.image.dataUrl } },
         ],
       },
     ], { maxTokens: 8192, thinking: { type: 'disabled' } });
     // 推理型模型思考 token 不可控：截断则自动重试一次
     let { content, usage, finish } = await req();
-    let latex = cleanLatex(content);
-    if (!latex && finish === 'length') {
+    let resultText = isFull ? normalizeFullText(content) : cleanLatex(content);
+    if (!resultText && finish === 'length') {
       ({ content, usage, finish } = await req());
-      latex = cleanLatex(content);
+      resultText = isFull ? normalizeFullText(content) : cleanLatex(content);
     }
-    if (!latex) {
+    if (!resultText) {
       throw new Error(finish === 'length' ? '模型思考过长导致输出被截断，请重试或更换视觉模型' : '模型未返回有效内容');
     }
-    showResult({ latex, tokens: usage && usage.total_tokens, source: '识图' });
+    showResult({ latex: resultText, tokens: usage && usage.total_tokens, source: isFull ? '全文' : '识图' });
     els.imgStatus.textContent = `完成，用时 ${((performance.now() - t0) / 1000).toFixed(1)}s`;
   } catch (e) {
     if (e.code !== 'abort') {
@@ -844,15 +879,19 @@ function switchMode(mode) {
   els.dropzone.hidden = showImage ? !!(store.image) : true;
   if (!showImage) els.imgPreview.hidden = true;
   else if (store.image) els.imgPreview.hidden = false;
+  els.scopeRow.hidden = !showImage; // 全文/仅公式仅用于识图；描述模式固定仅公式
   $('pane-image').hidden = !showImage;
   $('pane-describe').hidden = showImage;
 }
 
-function setInsertMode(mode) {
-  store.insertMode = mode;
-  storage.set('fc.insertMode', mode);
-  els.insertSeg.querySelectorAll('button').forEach((b) => b.classList.toggle('is-active', b.dataset.im === mode));
-  renderPreview(true);
+function setScope(scope) {
+  store.scope = scope;
+  storage.set('fc.scope', scope);
+  els.scopeSeg.querySelectorAll('button').forEach((b) => b.classList.toggle('is-active', b.dataset.scope === scope));
+  if (!els.result.hidden) {
+    els.latexEdit.rows = scope === 'full' ? 6 : 2;
+    renderPreview(true);
+  }
 }
 
 /* ================= 事件绑定 ================= */
@@ -864,7 +903,7 @@ function bindEvents() {
 
   // 分段控件
   bindSeg(els.modeSeg, els.modeThumb, (btn) => switchMode(btn.dataset.mode));
-  bindSeg(els.insertSeg, els.insertThumb, (btn) => setInsertMode(btn.dataset.im));
+  bindSeg(els.scopeSeg, els.scopeThumb, (btn) => setScope(btn.dataset.scope));
 
   // 识图
   els.dropzone.addEventListener('click', () => els.fileInput.click());
@@ -991,8 +1030,8 @@ async function detectOffice() {
 async function init() {
   loadConfig();
   loadStats();
-  store.insertMode = storage.get('fc.insertMode') || 'block';
-  els.insertSeg.querySelectorAll('button').forEach((b) => b.classList.toggle('is-active', b.dataset.im === store.insertMode));
+  store.scope = storage.get('fc.scope') || 'formula';
+  els.scopeSeg.querySelectorAll('button').forEach((b) => b.classList.toggle('is-active', b.dataset.scope === store.scope));
   applyConfigToInputs();
   bindEvents();
   store.officeReady = await detectOffice();

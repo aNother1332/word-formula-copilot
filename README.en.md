@@ -24,9 +24,10 @@
 
 ## Features
 
-- **Screenshot → equation**: upload an image or just press `Ctrl+V` to paste a screenshot; it is recognized as LaTeX automatically
+- **Screenshot → equation**: upload an image or just press `Ctrl+V` to paste a screenshot; recognized as LaTeX automatically
+- **Recognition scope**: **formula only**, or **full context** — transcribe the text around the formula as well and insert it all (formulas stay as native equation objects embedded in the text); describe mode is formula-only
 - **Natural language → equation**: describe a formula in plain words and press Enter
-- **Inline / display** insertion modes; inserts **native Word equation objects** (fully editable, not images)
+- Inserts **native Word equation objects** (fully editable, not images)
 - **Live equation preview** (Temml / MathML)
 - **Multiple providers**: DeepSeek (default) / Zhipu GLM / SiliconFlow / Alibaba Qwen / OpenRouter / any OpenAI-compatible API
 - **One-click self test**: verifies connectivity and whether the model truly supports image input
@@ -120,9 +121,9 @@ That is why the repo ships **`start-word.bat`**: double-click it and it loads th
 
 ## Usage
 
-1. Paste a screenshot with `Ctrl+V` (or click the drop zone to upload) — recognition starts automatically
-2. Check the preview and the LaTeX (editable), choose **inline** or **display**
-3. Place the cursor where the formula should go → click **Insert to Word**
+1. Paste a screenshot with `Ctrl+V` (or click the drop zone to upload); in recognize mode pick the scope: **formula only** or **full context** (transcribes the text around formulas too)
+2. Check the preview and the content (editable)
+3. Place the cursor where the formula should go → click **Insert to Word**; in describe mode press `Enter` to generate, then insert
 
 ## Provider reference
 
@@ -155,6 +156,11 @@ node test/cdp-probe.mjs   # attach to the task pane WebView2 (needs the debug po
 ```
 
 Built with vanilla HTML/CSS/JS (no framework) · [Office.js](https://learn.microsoft.com/office/dev/add-ins/overview/office-add-ins) · [Temml](https://temml.org) (LaTeX→MathML) · [mathml2omml](https://github.com/fiduswriter/mathml2omml) (MathML→OMML) · local Node HTTPS server.
+
+## Changelog
+
+- **v1.1.0**: "Full context" recognition scope for screenshots (transcribes surrounding text with formulas embedded as native objects); removed inline/display toggle — formulas now insert as display equations
+- **v1.0.0**: first public release
 
 ## License
 
