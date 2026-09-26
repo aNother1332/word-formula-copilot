@@ -509,7 +509,11 @@ async function insertResult() {
   setInsertBusy(true);
   els.insertDiag.hidden = true;
   try {
-    if (store.scope === 'full') {
+    const scope = effectiveScope();
+    // 全文输出若不含 $ 定界却形似纯 LaTeX（模型漏加定界符），按单行公式插入
+    const bareLatex = scope === 'full' && !content.includes('$') && content.length < 200 &&
+      /\\(frac|sum|prod|int|sqrt|sin|cos|tan|log|lim|cdot|times|infty|alpha|beta|gamma|delta|pi)/i.test(content);
+    if (scope === 'full' && !bareLatex) {
       // 全文：文字 + MathML 内联公式，经 HTML 通道写入（Word 自动转换为公式对象）
       let html;
       try { html = fullTextToHtml(content, (l, dm) => temml.renderToString(l, { displayMode: dm })); }
@@ -560,7 +564,7 @@ function showResult({ latex, tokens, source }) {
     : source === '全文' ? '全文结果'
     : 'LaTeX';
   els.latexEdit.value = latex;
-  els.latexEdit.rows = store.scope === 'full' ? 6 : 2;
+  els.latexEdit.rows = effectiveScope() === 'full' ? 6 : 2;
   els.resultMeta.textContent = tokens ? `${tokens} tokens` : '';
   els.btnCopy.hidden = false;
   els.btnRerun.hidden = !(source === '识图' && store.image);
@@ -573,18 +577,23 @@ function showResult({ latex, tokens, source }) {
 }
 
 let previewTimer = 0;
+// 描述模式固定"仅公式"：识别范围只在识图模式生效（避免全文状态泄漏到描述模式）
+function effectiveScope() {
+  return store.mode === 'describe' ? 'formula' : store.scope;
+}
 function renderPreview(immediate = false) {
   const run = () => {
     const content = els.latexEdit.value.trim();
     if (!content) { els.mathPreview.innerHTML = ''; return; }
+    const scope = effectiveScope();
     try {
-      if (store.scope === 'full') {
+      if (scope === 'full') {
         els.mathPreview.innerHTML = fullTextToHtml(content, (l, dm) => temml.renderToString(l, { displayMode: dm }));
       } else {
         els.mathPreview.innerHTML = temml.renderToString(content, { displayMode: true });
       }
     } catch (e) {
-      els.mathPreview.innerHTML = '<span class="preview-err">' + (store.scope === 'full' ? '内容中部分公式语法有误' : 'LaTeX 语法有误') + '，无法完整预览</span>';
+      els.mathPreview.innerHTML = '<span class="preview-err">' + (scope === 'full' ? '内容中部分公式语法有误' : 'LaTeX 语法有误') + '，无法完整预览</span>';
     }
   };
   clearTimeout(previewTimer);
