@@ -60,7 +60,7 @@ Give the repository URL to an AI coding agent and ask it to "install this Word a
 - The local HTTPS server and self-test logic
 - Known issues and fixes (see Troubleshooting below)
 
-The agent will handle: clone → `npm install` → generate & trust the localhost certificate → start the local server → sideload into Word → read diagnostics and fix issues as they appear.
+The agent will handle: clone → `npm install` → generate & trust the localhost certificate → start the local server → sideload into Word → read diagnostics and fix issues as they appear — and set up `start-word.bat` as the daily entry point.
 
 ### Option 2: manual installation
 
@@ -108,6 +108,16 @@ npm start
 
 **5. Configure the provider and models** (gear icon in the pane), then click "Test connection & vision capability".
 
+### Daily launch (important, please read)
+
+On some Office builds (**verified on Office Home 2024**), a developer-sideloaded add-in **only appears in the Word session that starts right after the sideload command** — afterwards, opening Word normally may show no add-in at all. This is a version-specific sideload quirk, not a failed installation.
+
+That is why the repo ships **`start-word.bat`**: double-click it and it loads the add-in and starts Word automatically (takes seconds). **Create a desktop shortcut to it — that is your daily entry point.** If Word is already running, the script asks you to close it first (the sideload registration must be in place at the moment Word starts).
+
+> Technical background: the `Wef\Developer` registry sideload entry is one-shot, and some builds ignore it entirely; `office-addin-debugging` launches Word with a generated document linked to the add-in, which proved to be the most reliable channel in practice.
+>
+> Alternative: run `npx -y office-addin-debugging start manifest.xml` manually each time — same effect.
+
 ## Usage
 
 1. Paste a screenshot with `Ctrl+V` (or click the drop zone to upload) — recognition starts automatically
@@ -128,6 +138,7 @@ npm start
 
 ## Troubleshooting
 
+- **The add-in only shows up when launched via the script, not when I open Word normally**: that is a version-specific sideload quirk (verified on Office Home 2024). Use `start-word.bat` daily (a desktop shortcut helps), or run the sideload command manually each time.
 - **The "Get Add-ins" dialog freezes**: it loads the Microsoft Store online and often stalls on some networks. Sideload with `npx office-addin-debugging start manifest.xml` instead.
 - **Only LaTeX text gets inserted, not an equation**: your Office build's OOXML write channel is broken (reproduced on one build here — even plain paragraphs failed). The add-in automatically switches to the **HTML+MathML channel**, which Word converts natively into an equation object; the red diagnostics box under the result card shows per-layer errors.
 - **Recognition is slow**: thinking is already disabled for DeepSeek flash (~200–300 tokens per call); switch to Qwen-VL / GLM-4V if needed.
