@@ -1,0 +1,25 @@
+{
+  "name": "word-formula-copilot",
+  "version": "1.0.0",
+  "description": "Word 加载项：识图/自然语言 → LaTeX → 插入公式",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "node server/serve.mjs",
+    "test": "node test/api-test.mjs",
+    "dev-server": "node -e \"setInterval(()=>{},1000)\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "mathml2omml": "^0.5.0",
+    "temml": "^0.13.5"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.12.0"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+access.log
+debug-report.json
+src/user.config.js
+certs/
+catalog/
+*.docx
+test/word-native-omml.xml
+test/formula.png.bak
+.DS_Store
