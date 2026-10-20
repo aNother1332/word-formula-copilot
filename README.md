@@ -17,6 +17,7 @@
 
 <p>
   <strong><a href="https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip">下载 Windows 安装包</a></strong>
+  &nbsp; · &nbsp; <a href="#30-秒了解公式助手">观看视频</a>
   &nbsp; · &nbsp; <a href="#三步开始使用">快速安装</a>
   &nbsp; · &nbsp; <a href="docs/INSTALL.md">使用与修复</a>
   &nbsp; · &nbsp; <a href="README.en.md">English</a>
@@ -27,6 +28,16 @@
 </div>
 
 ---
+
+## 30 秒了解公式助手
+
+[![播放公式助手宣传视频：截图识别、文字生成与 Word 原生公式插入](docs/media/Formula-Copilot-Promo-Cover.png)](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)
+
+**[▶ 点击封面播放完整视频](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)** · [下载 1080p / 60fps 成片](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [中文字幕](docs/media/Formula-Copilot-Promo.zh-CN.srt)
+
+25 秒功能演示 + 5 秒免责声明，配有节奏音乐与中文字幕，无配音。展示截图识别、文字描述生成公式，以及插入 Word 后继续编辑的流程；演示操作已加速。
+
+<sub>本视频由 GPT6.1Sol 制作。非营利展示不当然构成合理使用；第三方素材版权归原权利人，使用须符合相应授权。</sub>
 
 ## 专注写作，让公式录入更轻松
 

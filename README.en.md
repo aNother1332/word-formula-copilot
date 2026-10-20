@@ -17,6 +17,7 @@
 
 <p>
   <strong><a href="https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip">Download for Windows</a></strong>
+  &nbsp; · &nbsp; <a href="#watch-the-30-second-demo">Watch demo</a>
   &nbsp; · &nbsp; <a href="#get-started-in-three-steps">Quick start</a>
   &nbsp; · &nbsp; <a href="README.md">简体中文</a>
 </p>
@@ -26,6 +27,16 @@
 </div>
 
 ---
+
+## Watch the 30-second demo
+
+[![Watch Formula Copilot: screenshot recognition, text-to-equation and native Word insertion](docs/media/Formula-Copilot-Promo-Cover.png)](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)
+
+**[▶ Click the cover to play the full video](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)** · [Download 1080p / 60fps video](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [Chinese subtitles](docs/media/Formula-Copilot-Promo.zh-CN.srt)
+
+25 seconds of product demonstration followed by a 5-second disclaimer, with rhythmic music and Chinese captions. No narration. See screenshot recognition, natural-language equation generation, and editable equations inserted into Word. Demonstration steps are sped up.
+
+<sub>Video created by GPT6.1Sol. Noncommercial use does not automatically qualify as fair use. Third-party materials belong to their respective rights holders and require appropriate authorization.</sub>
 
 ## More writing. Less equation entry.
 
