@@ -31,9 +31,9 @@
 
 ## 30 秒了解公式助手
 
-[![播放公式助手宣传视频：截图识别、文字生成与 Word 原生公式插入](docs/media/Formula-Copilot-Promo-Cover.png)](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)
+[![播放公式助手宣传视频：截图识别、文字生成与 Word 原生公式插入](docs/media/Formula-Copilot-Promo-Cover.png)](https://another1332.github.io/word-formula-copilot/media/)
 
-**[▶ 点击封面播放完整视频](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)** · [下载 1080p / 60fps 成片](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [中文字幕](docs/media/Formula-Copilot-Promo.zh-CN.srt)
+**[▶ 点击封面播放完整视频](https://another1332.github.io/word-formula-copilot/media/)** · [下载 1080p / 60fps 成片](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [中文字幕](docs/media/Formula-Copilot-Promo.zh-CN.srt)
 
 25 秒功能演示 + 5 秒免责声明，配有节奏音乐与中文字幕，无配音。展示截图识别、文字描述生成公式，以及插入 Word 后继续编辑的流程；演示操作已加速。
 

@@ -30,9 +30,9 @@
 
 ## Watch the 30-second demo
 
-[![Watch Formula Copilot: screenshot recognition, text-to-equation and native Word insertion](docs/media/Formula-Copilot-Promo-Cover.png)](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)
+[![Watch Formula Copilot: screenshot recognition, text-to-equation and native Word insertion](docs/media/Formula-Copilot-Promo-Cover.png)](https://another1332.github.io/word-formula-copilot/media/)
 
-**[▶ Click the cover to play the full video](https://github.com/aNother1332/word-formula-copilot/blob/main/docs/media/Formula-Copilot-Promo-1080p60.mp4)** · [Download 1080p / 60fps video](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [Chinese subtitles](docs/media/Formula-Copilot-Promo.zh-CN.srt)
+**[▶ Click the cover to play the full video](https://another1332.github.io/word-formula-copilot/media/)** · [Download 1080p / 60fps video](https://github.com/aNother1332/word-formula-copilot/releases/download/v2.0.0/Formula-Copilot-Promo-1080p60.mp4) · [Chinese subtitles](docs/media/Formula-Copilot-Promo.zh-CN.srt)
 
 25 seconds of product demonstration followed by a 5-second disclaimer, with rhythmic music and Chinese captions. No narration. See screenshot recognition, natural-language equation generation, and editable equations inserted into Word. Demonstration steps are sped up.
 
