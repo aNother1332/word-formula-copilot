@@ -1,167 +1,103 @@
-# Formula Copilot for Word
-
 <div align="center">
 
-**In Microsoft Word: screenshot / natural language → LaTeX → native equation, one click**
+<h1>Formula Copilot</h1>
 
-[简体中文](README.md) | [English](README.en.md)
+<p>Turn a screenshot or a sentence into an editable equation in Word.</p>
 
-![Describe to equation](docs/screenshots/describe.png)
+<p>
+  <a href="https://github.com/aNother1332/word-formula-copilot/releases/latest"><img alt="Windows 2.0" src="https://img.shields.io/badge/Windows-2.0-007AFF?style=flat-square" /></a>
+  <img alt="Native Word equations" src="https://img.shields.io/badge/Microsoft_Word-Native_equations-185ABD?style=flat-square" />
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-6E6E73?style=flat-square" /></a>
+</p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-en-dark.svg" />
+  <img src="docs/readme/hero-en-light.svg" alt="Formula Copilot: Your formulas. Right inside Word." width="100%" />
+</picture>
+
+<p>
+  <strong><a href="https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip">Download for Windows</a></strong>
+  &nbsp; · &nbsp; <a href="#get-started-in-three-steps">Quick start</a>
+  &nbsp; · &nbsp; <a href="README.md">简体中文</a>
+</p>
+
+<p><sub>Windows desktop Word · Bring your own API key · Open source; model usage is billed by your provider</sub></p>
 
 </div>
 
 ---
 
-## ⚠️ Please read before installing
+## More writing. Less equation entry.
 
-> **The installation process of the current version may run into compatibility issues** depending on your Office build and network environment (add-in sideloading quirks, the Office Store dialog freezing, broken OOXML write channels on certain Office builds, etc.). The project has been verified on Office Home 2024 (Windows, build 16.0.20326), but a manual install may still hit issues not covered by this document.
->
-> **⭐ We strongly recommend letting an AI coding agent (ZCode / Claude Code / Cursor, etc.) install it for you**: hand the repository URL to the agent and ask it to "install this Word add-in". It will clone the repo, install dependencies, generate certificates, sideload into Word and debug automatically — the diagnostics tooling is included (see [Option 1: install with an AI agent](#option-1-install-with-an-ai-agent-recommended)).
->
-> Manual installation instructions are still provided [below](#option-2-manual-installation).
+Fractions from a paper, sums from a lecture, subscripts from your notes. Capture what you see or describe what you mean, then preview and insert the result without leaving Word.
+
+| Capture it | Describe it | Keep editing |
+| :--- | :--- | :--- |
+| Paste a screenshot, drag an image, or upload a file. Recognize a formula on its own, or transcribe surrounding text too. | Describe a formula in natural language and press Enter. Paste or edit LaTeX when you need finer control. | Insert an editable native Word equation. Continue changing its structure, symbols, and content in Word. |
+
+<div align="center">
+  <img src="docs/screenshots/describe.png" alt="Natural-language input, formula preview, editable LaTeX and Insert into Word in one pane" width="400" />
+  <p><sub>Describe → preview → edit → insert. One pane for the whole flow. The current interface is in Chinese.</sub></p>
+</div>
+
+## Open Word. Find it on Home.
+
+**Windows 2.0 uses a persistent native COM add-in.** Install once, then open Word from Start, a shortcut, or a document. The **Home → 公式助手** button is available in the document editor. Click it to open or hide the pane.
+
+Daily use needs no custom launcher, background Node.js server, localhost certificate, or developer sideload. Each document window has its own pane and insertion target.
+
+<img src="docs/screenshots/start-menu-new-document.png" alt="A real blank Word document opened through the Start menu Word shortcut, showing the Formula Copilot button on Home" width="100%" />
+
+## Get started in three steps
+
+1. **Download and extract** the [Windows package](https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip).
+2. **Save your work and close Word**, then double-click **`Install.cmd`**.
+3. **Open Word normally**, create or open a document, click **Home → 公式助手**, and enter your model provider and API key in Settings.
+
+The installer detects x86/x64 Word and installs for the current user. If WebView2 Runtime is missing, it downloads Microsoft's official bootstrapper and verifies its signature before installing it. Administrator rights are usually unnecessary.
+
+Run `Repair.cmd` or `Uninstall.cmd` with Word closed. You can also uninstall through Windows Settings. Repair and uninstall retain personal settings. See the [installation guide](docs/INSTALL.md) for details.
+
+> **Compatibility:** Windows 10/11 desktop Word. Tested on 64-bit Word `16.0.20430.20182`; x86 components are included but have not been tested on 32-bit Office. Word policies, disabled add-ins and hidden ribbon groups remain under user or administrator control. This package does not support WPS, Mac or Word Online.
+
+## Your choice of model
+
+Presets include **DeepSeek, Zhipu GLM, SiliconFlow, Alibaba Cloud Bailian, and OpenRouter**. You can also configure an OpenAI-compatible endpoint, with separate vision and text models. Availability depends on the provider.
+
+Settings include connection and image-recognition tests, plus per-request, session and cumulative token usage. Images and descriptions go directly to your selected provider. API keys and preferences stay in the local WebView2 profile. Opening the pane does not insert diagnostic content into your document. Settings from the previous web add-in need to be entered again in the native edition.
+
+<details>
+<summary><strong>For developers: building, testing and architecture</strong></summary>
+
+### Install from source
+
+Run the root `Install.cmd`; missing release files are built automatically. Building needs desktop Office interop assemblies, the Windows .NET Framework compiler, and network access for the pinned WebView2 SDK. Neither the .NET SDK nor Node.js is required for end-user installation.
+
+```powershell
+npm install
+npm test
+npm run build:windows
+npm run test:windows
+npm run test:install
+npm run test:api
+```
+
+The build produces `dist/FormulaCopilot-Windows.zip`. Word tests require the installed add-in and all Word windows closed. They invoke the real ribbon, check the pane, verify native OMath objects and document isolation, and close temporary documents without saving. They do not call paid model APIs. The separate API smoke test requires `DEEPSEEK_API_KEY`.
+
+The Windows host uses COM, a custom task pane and WebView2. The shared UI is plain HTML/CSS/JavaScript. Conversion follows **LaTeX → Temml → MathML → OMML → Word**; mixed text and equations use WordprocessingML in a Flat OPC package. The CDP port is enabled only by the integration test environment.
+
+See [native architecture and research](docs/native-architecture.md). Rebuild the README banners with `node scripts/build-readme-art.mjs`. The previous Office.js host remains available for development; see [the legacy guide](docs/legacy-web-addin.en.md).
+
+</details>
 
 ---
 
-## Features
+<div align="center">
 
-- **Screenshot → equation**: upload an image or just press `Ctrl+V` to paste a screenshot; recognized as LaTeX automatically
-- **Recognition scope**: **formula only**, or **full context** — transcribe the text around the formula as well and insert it all (formulas stay as native equation objects embedded in the text); describe mode is formula-only
-- **Natural language → equation**: describe a formula in plain words and press Enter
-- Inserts **native Word equation objects** (fully editable, not images)
-- **Live equation preview** (Temml / MathML)
-- **Multiple providers**: DeepSeek (default) / Zhipu GLM / SiliconFlow / Alibaba Qwen / OpenRouter / any OpenAI-compatible API
-- **One-click self test**: verifies connectivity and whether the model truly supports image input
-- **Token usage tracking**: per request / session / total
-- **Resilient insertion pipeline**: if the OOXML channel fails, it automatically falls back to an **HTML+MathML channel** (Word converts it natively), then to LaTeX text + `Alt+=`
+**Keep your attention on the content.**
 
-| Recognize | Settings |
-| --- | --- |
-| ![Recognize](docs/screenshots/home.png) | ![Settings](docs/screenshots/settings.png) |
+[Download for Windows](https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip) · [Report an issue](https://github.com/aNother1332/word-formula-copilot/issues) · [MIT License](LICENSE)
 
-## How it works
+<sub>Temml · mathml2omml · Microsoft WebView2 · Microsoft Word</sub>
 
-```
-screenshot / description
-    ↓  vision model (deepseek-flash etc., thinking disabled for stability)
-  LaTeX
-    ├→ temml → MathML → mathml2omml → OMML ── insertOoxml / setSelectedDataAsync   (OOXML channel)
-    ├→ MathML ──────────────────────────── setSelectedDataAsync(HTML)              (HTML channel, Word converts natively)
-    └→ LaTeX text + Alt+= hint                                                     (last resort)
-```
-
-Channels degrade automatically; whichever works on your Office build is remembered and preferred.
-
-## Installation
-
-### Option 1: install with an AI agent (recommended)
-
-Give the repository URL to an AI coding agent and ask it to "install this Word add-in". The repo ships with:
-
-- Diagnostic scripts (`test/cdp-probe.mjs` and friends) that attach to the task pane WebView2 and surface real errors
-- The local HTTPS server and self-test logic
-- Known issues and fixes (see Troubleshooting below)
-
-The agent will handle: clone → `npm install` → generate & trust the localhost certificate → start the local server → sideload into Word → read diagnostics and fix issues as they appear — and set up `start-word.bat` as the daily entry point.
-
-### Option 2: manual installation
-
-**Prerequisites**: Windows 10/11, [Node.js](https://nodejs.org) ≥ 18, Word 2019/2021/2024 (perpetual) or Microsoft 365, network access to your model provider.
-
-```bash
-git clone https://github.com/aNother1332/word-formula-copilot.git
-cd word-formula-copilot
-npm install
-```
-
-**1. Generate and trust a local certificate** (Office requires HTTPS):
-
-```bash
-mkdir certs
-openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
-  -keyout certs/localhost-key.pem -out certs/localhost-cert.pem \
-  -subj "//CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-certutil -user -addstore Root "%cd%\certs\localhost-cert.pem"
-```
-
-**2. Configure your API key**:
-
-```bash
-copy src\user.config.example.js src\user.config.js
-# edit src/user.config.js and put in your key (this file is gitignored)
-```
-You can also fill it in later in the add-in settings pane.
-
-**3. Start the local server**:
-
-```bash
-npm start
-```
-
-**4. Sideload into Word** (either):
-
-- **Official debugging tool** (recommended, verified in this project's environment):
-  ```bash
-  npx -y office-addin-debugging start manifest.xml
-  ```
-  Word opens automatically with the add-in loaded.
-- **Upload inside Word**: Insert → Get Add-ins → My Add-ins → Upload My Add-in → pick `manifest.xml`.
-  ⚠️ That dialog loads the Microsoft Store online and may hang on some networks — if it freezes, use the command-line method above.
-
-**5. Configure the provider and models** (gear icon in the pane), then click "Test connection & vision capability".
-
-### Daily launch (important, please read)
-
-On some Office builds (**verified on Office Home 2024**), a developer-sideloaded add-in **only appears in the Word session that starts right after the sideload command** — afterwards, opening Word normally may show no add-in at all. This is a version-specific sideload quirk, not a failed installation.
-
-That is why the repo ships **`start-word.bat`**: double-click it and it loads the add-in and starts Word automatically (takes seconds). **Create a desktop shortcut to it — that is your daily entry point.** If Word is already running, the script asks you to close it first (the sideload registration must be in place at the moment Word starts).
-
-> Technical background: the `Wef\Developer` registry sideload entry is one-shot, and some builds ignore it entirely; `office-addin-debugging` launches Word with a generated document linked to the add-in, which proved to be the most reliable channel in practice.
->
-> Alternative: run `npx -y office-addin-debugging start manifest.xml` manually each time — same effect.
-
-## Usage
-
-1. Paste a screenshot with `Ctrl+V` (or click the drop zone to upload); in recognize mode pick the scope: **formula only** or **full context** (transcribes the text around formulas too)
-2. Check the preview and the content (editable)
-3. Place the cursor where the formula should go → click **Insert to Word**; in describe mode press `Enter` to generate, then insert
-
-## Provider reference
-
-| Provider | Vision model | Text model | Base URL |
-| --- | --- | --- | --- |
-| DeepSeek (default) | `deepseek-flash` | `deepseek-chat` | `https://api.deepseek.com` |
-| Zhipu GLM | `glm-4.5v` | `glm-4.6` | `https://open.bigmodel.cn/api/paas/v4` |
-| SiliconFlow | `Qwen/Qwen2.5-VL-72B-Instruct` | `deepseek-ai/DeepSeek-V3` | `https://api.siliconflow.cn/v1` |
-| Alibaba Bailian | `qwen-vl-max` | `qwen-plus` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| OpenRouter | `google/gemini-2.5-flash` | any | `https://openrouter.ai/api/v1` |
-
-> DeepSeek's `deepseek-flash` is a reasoning model; this project calls it with thinking disabled (`thinking: disabled`) for speed and stability. Adjust models in the settings pane as needed.
-
-## Troubleshooting
-
-- **The add-in only shows up when launched via the script, not when I open Word normally**: that is a version-specific sideload quirk (verified on Office Home 2024). Use `start-word.bat` daily (a desktop shortcut helps), or run the sideload command manually each time.
-- **The "Get Add-ins" dialog freezes**: it loads the Microsoft Store online and often stalls on some networks. Sideload with `npx office-addin-debugging start manifest.xml` instead.
-- **Only LaTeX text gets inserted, not an equation**: your Office build's OOXML write channel is broken (reproduced on one build here — even plain paragraphs failed). The add-in automatically switches to the **HTML+MathML channel**, which Word converts natively into an equation object; the red diagnostics box under the result card shows per-layer errors.
-- **Recognition is slow**: thinking is already disabled for DeepSeek flash (~200–300 tokens per call); switch to Qwen-VL / GLM-4V if needed.
-- **Editing a formula**: inserted equations are native Word objects — click and edit, or tweak the LaTeX and re-insert.
-- **Remove the local certificate**: `certutil -user -delstore Root localhost`
-
-## Development & testing
-
-```bash
-npm start                 # local server (3000 HTTPS / 3100 HTTP)
-npm run test              # DeepSeek API smoke test (needs DEEPSEEK_API_KEY env var)
-node test/screenshot.mjs  # regenerate README screenshots
-node test/cdp-probe.mjs   # attach to the task pane WebView2 (needs the debug port)
-```
-
-Built with vanilla HTML/CSS/JS (no framework) · [Office.js](https://learn.microsoft.com/office/dev/add-ins/overview/office-add-ins) · [Temml](https://temml.org) (LaTeX→MathML) · [mathml2omml](https://github.com/fiduswriter/mathml2omml) (MathML→OMML) · local Node HTTPS server.
-
-## Changelog
-
-- **v1.1.0**: "Full context" recognition scope for screenshots (transcribes surrounding text with formulas embedded as native objects); removed inline/display toggle — formulas now insert as display equations
-- **v1.0.0**: first public release
-
-## License
-
-[MIT](LICENSE)
+</div>

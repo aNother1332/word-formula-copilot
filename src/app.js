@@ -1,5 +1,6 @@
 import { mml2omml } from './vendor/mml2omml.js';
-import { fullTextToHtml } from './fulltext.js';
+import { fullTextToHtml, fullTextToWordXml } from './fulltext.js';
+import { nativeHost } from './native-host.js';
 
 /* ================= 常量 ================= */
 
@@ -350,7 +351,7 @@ function normalizeFullText(raw) {
 
 function latexToOmml(latex, mode) {
   if (!latex) throw new Error('内容为空');
-  const mathml = temml.renderToString(latex, { displayMode: mode === 'block' });
+  const mathml = temml.renderToString(latex, { displayMode: mode === 'block', throwOnError: true });
   let oMath = mml2omml(mathml);
   if (!oMath.startsWith('<m:oMath')) {
     oMath = `<m:oMath xmlns:m="${NS_M}" xmlns:w="${NS_W}">${oMath}</m:oMath>`;
@@ -361,6 +362,7 @@ function latexToOmml(latex, mode) {
 /* ================= 插入 Word（多级兜底） ================= */
 
 function wordJsInsert(xml) {
+  if (nativeHost.available) return nativeHost.request('insertOoxml', xml);
   return new Promise((resolve, reject) => {
     Word.run(async (ctx) => {
       try {
@@ -400,7 +402,7 @@ function setSelectedOoxml(xml) {
 
 async function insertOoxmlSmart(oMath, mode) {
   const errors = [];
-  const canWordJs = window.Word && Office.context.requirements.isSetSupported('WordApi', '1.1');
+  const canWordJs = nativeHost.available || (window.Word && Office.context.requirements.isSetSupported('WordApi', '1.1'));
   const para = (inner) => `<w:p xmlns:w="${NS_W}" xmlns:m="${NS_M}">${inner}</w:p>`;
   const blockPara = para(
     `<m:oMathPara><m:oMathParaPr><m:jc m:val="center"/></m:oMathParaPr>${oMath}</m:oMathPara>`
@@ -434,21 +436,24 @@ async function insertOoxmlSmart(oMath, mode) {
       try { await wordJsInsert(t.xml); diagLog('insert', `${t.name} → WordJS 成功`); return t.result; }
       catch (e) { errors.push(`${t.name} [WordJS] ${e && (e.message || e)}`); }
     }
-    if (await setSelectedOoxml(t.xml)) { diagLog('insert', `${t.name} → setSelectedDataAsync 成功`); return t.result; }
-    errors.push(`${t.name} [setSelectedDataAsync] ${lastSetSelectedError}`);
+    if (!nativeHost.available) {
+      if (await setSelectedOoxml(t.xml)) { diagLog('insert', `${t.name} → setSelectedDataAsync 成功`); return t.result; }
+      errors.push(`${t.name} [setSelectedDataAsync] ${lastSetSelectedError}`);
+    }
   }
   errors.forEach((m) => diagLog('insert', m));
   return null;
 }
 
 function htmlOf(latex, mode) {
-  const mathml = temml.renderToString(latex, { displayMode: mode === 'block' });
+  const mathml = temml.renderToString(latex, { displayMode: mode === 'block', throwOnError: true });
   return mathml.includes('xmlns=')
     ? mathml
     : mathml.replace('<math>', '<math xmlns="http://www.w3.org/1998/Math/MathML">');
 }
 
 function ssHtml(html) {
+  if (nativeHost.available) return Promise.resolve(false);
   return new Promise((resolve) => {
     try {
       Office.context.document.setSelectedDataAsync(html, { coercionType: Office.CoercionType.Html }, (r) => {
@@ -471,7 +476,7 @@ async function insertFormulaOnly(content) {
   let html = null;
   try { html = htmlOf(content, 'block'); } catch (e) { html = null; }
 
-  const preferHtml = storage.get('fc.insertChannel') === 'html';
+  const preferHtml = !nativeHost.available && storage.get('fc.insertChannel') === 'html';
   const tryOoxml = async () => {
     const r = await insertOoxmlSmart(oMath, 'block');
     if (r) storage.set('fc.insertChannel', 'ooxml');
@@ -514,6 +519,12 @@ async function insertResult() {
     const bareLatex = scope === 'full' && !content.includes('$') && content.length < 200 &&
       /\\(frac|sum|prod|int|sqrt|sin|cos|tan|log|lim|cdot|times|infty|alpha|beta|gamma|delta|pi)/i.test(content);
     if (scope === 'full' && !bareLatex) {
+      if (nativeHost.available) {
+        const xml = fullTextToWordXml(content, (latex) => latexToOmml(latex, 'inline'));
+        await nativeHost.request('insertOoxml', xml);
+        toast('success', '已插入全文（公式为可编辑对象）');
+        return;
+      }
       // 全文：文字 + MathML 内联公式，经 HTML 通道写入（Word 自动转换为公式对象）
       let html;
       try { html = fullTextToHtml(content, (l, dm) => temml.renderToString(l, { displayMode: dm })); }
@@ -539,14 +550,25 @@ async function insertResult() {
     } else {
       showInsertDiag(diag.insert.slice(0, 6));
       // 最终兜底：插入 LaTeX 文本 + 提示 Alt+=
-      await new Promise((resolve) => {
-        Office.context.document.setSelectedDataAsync(content, { coercionType: Office.CoercionType.Text }, () => resolve());
-      });
+      await insertPlainText(content);
       toast('error', '公式对象插入失败，已退化为插入 LaTeX 文本（详见卡片下方的诊断信息）', 6000);
     }
+  } catch (e) {
+    showInsertDiag([e.message || String(e)]);
+    toast('error', '插入失败：' + (e.message || String(e)), 6000);
   } finally {
     setInsertBusy(false);
   }
+}
+
+function insertPlainText(content) {
+  if (nativeHost.available) return nativeHost.request('insertText', content);
+  return new Promise((resolve, reject) => {
+    Office.context.document.setSelectedDataAsync(content, { coercionType: Office.CoercionType.Text }, (r) => {
+      if (r.status === Office.AsyncResultStatus.Succeeded) resolve();
+      else reject(new Error(r.error?.message || '文本插入失败'));
+    });
+  });
 }
 
 function setInsertBusy(busy) {
@@ -1018,6 +1040,10 @@ function bindEvents() {
 
 async function detectOffice() {
   if (DEMO) return false;
+  if (nativeHost.available) {
+    await nativeHost.request('ping');
+    return true;
+  }
   if (!(window.Office && typeof Office.onReady === 'function')) {
     // office.js 从微软 CDN 加载，网络慢时稍作等待
     const loaded = await new Promise((res) => {
@@ -1044,62 +1070,12 @@ async function init() {
   applyConfigToInputs();
   bindEvents();
   store.officeReady = await detectOffice();
-  if (store.officeReady) {
-    runSelfTest(); // 一次性诊断，结果写到本地 debug-report.json
-  } else {
+  if (!store.officeReady) {
     els.demoBanner.textContent = DEMO
       ? '浏览器预览模式 — 在 Word 中打开后所有功能可用'
       : '未检测到 Office 运行时：若是首次加载请稍候；长期如此请检查网络（office.js 需联网加载）';
     els.demoBanner.hidden = false;
   }
-}
-
-// 一次性插入自检：在真实 Word 里逐层测试，结果上报到本地服务
-async function runSelfTest() {
-  if (storage.get('fc.selftest3') === 'done') return;
-  const report = { time: new Date().toISOString(), results: {} };
-  const results = report.results;
-  try {
-    const mathml = temml.renderToString('y_1 = \\sin^3 x \\cdot \\frac{1}{\\cos x}', { displayMode: false });
-    // 确保 xmlns 存在（Word 靠它识别 MathML）
-    const mathmlNs = mathml.includes('xmlns=') ? mathml : mathml.replace('<math>', '<math xmlns="http://www.w3.org/1998/Math/MathML">');
-
-    const readBack = () => new Promise((resolve) => {
-      try {
-        Office.context.document.getSelectedDataAsync('ooxml', (r) => {
-          if (r.status === Office.AsyncResultStatus.Succeeded) {
-            const v = r.value || '';
-            resolve(v.includes('<m:oMath') ? ('✓已是公式对象(oMath) 前200字:' + v.replace(/\s+/g, ' ').slice(v.indexOf('<m:oMath'), v.indexOf('<m:oMath') + 200)) : '✗未转换 前200字:' + v.replace(/\s+/g, ' ').slice(0, 200));
-          } else resolve('读回失败 ' + (r.error && r.error.message));
-        });
-      } catch (e) { resolve('throw ' + e.message); }
-    });
-    const ssHtml = (html) => new Promise((resolve) => {
-      try {
-        Office.context.document.setSelectedDataAsync(html, { coercionType: Office.CoercionType.Html }, (r) =>
-          resolve(r.status === Office.AsyncResultStatus.Succeeded ? 'ok' : 'setSelected ' + ((r.error && (r.error.name + ': ' + r.error.message)) || 'fail')));
-      } catch (e) { resolve('throw ' + e.message); }
-    });
-
-    results.S9mathmlHead = mathmlNs.slice(0, 160);
-    results.S9write = await ssHtml(mathmlNs);
-    results.S9readback = await readBack();
-
-    results.S10write = await ssHtml('<html><body>' + mathmlNs + '</body></html>');
-    results.S10readback = await readBack();
-
-    // 对照：displayMode 块级公式
-    const mathmlBlock = temml.renderToString('E = mc^2', { displayMode: true });
-    const mathmlBlockNs = mathmlBlock.includes('xmlns=') ? mathmlBlock : mathmlBlock.replace('<math>', '<math xmlns="http://www.w3.org/1998/Math/MathML">');
-    results.S11write = await ssHtml(mathmlBlockNs);
-    results.S11readback = await readBack();
-
-    results.UA = navigator.userAgent.slice(0, 90);
-    storage.set('fc.selftest3', 'done');
-  } catch (e) {
-    report.fatal = e.message || String(e);
-  }
-  try { fetch('/__debug', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(report) }).catch(() => {}); } catch { /* ignore */ }
 }
 
 // 任何启动/运行时错误都显示在界面上，绝不无声死亡

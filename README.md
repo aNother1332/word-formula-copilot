@@ -1,167 +1,152 @@
-# 公式助手 Formula Copilot
-
 <div align="center">
 
-**在 Microsoft Word 里：截图 / 自然语言 → LaTeX → 一键插入原生公式**
+<h1>公式助手 · Formula Copilot</h1>
 
-[简体中文](README.md) | [English](README.en.md)
+<p>把截图和一句话，变成 Word 里可编辑的公式。</p>
 
-![描述生成公式](docs/screenshots/describe.png)
+<p>
+  <a href="https://github.com/aNother1332/word-formula-copilot/releases/latest"><img alt="Windows 2.0" src="https://img.shields.io/badge/Windows-2.0-007AFF?style=flat-square" /></a>
+  <img alt="Microsoft Word 原生公式" src="https://img.shields.io/badge/Microsoft_Word-原生公式-185ABD?style=flat-square" />
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-6E6E73?style=flat-square" /></a>
+</p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/hero-zh-dark.svg" />
+  <img src="docs/readme/hero-zh-light.svg" alt="公式助手：让公式录入，像粘贴一样简单。" width="100%" />
+</picture>
+
+<p>
+  <strong><a href="https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip">下载 Windows 安装包</a></strong>
+  &nbsp; · &nbsp; <a href="#三步开始使用">快速安装</a>
+  &nbsp; · &nbsp; <a href="docs/INSTALL.md">使用与修复</a>
+  &nbsp; · &nbsp; <a href="README.en.md">English</a>
+</p>
+
+<p><sub>适用于 Windows 桌面版 Microsoft Word · 自备模型 API Key · 开源免费，模型调用费用由服务商收取</sub></p>
 
 </div>
 
 ---
 
-## ⚠️ 安装提示（请先阅读）
+## 专注写作，让公式录入更轻松
 
-> **当前版本的安装过程在不同 Office 版本 / 网络环境下可能遇到兼容性问题**（Office 加载项的侧载机制、微软商店对话框卡死、部分 Office 构建的 OOXML 写入异常等）。本项目已在 Office 家庭版 2024（Windows，16.0.20326）上实测跑通，但手动安装仍可能碰到文档未覆盖的坑。
->
-> **⭐ 强烈建议使用 AI 编程代理（ZCode / Claude Code / Cursor 等）来完成安装**：把本仓库地址发给代理，让它克隆、安装依赖、生成证书、装载进 Word 并自动排障——安装脚本与诊断工具都已包含在仓库中（见 [Agent 安装](#-方式一用-ai-agent-安装推荐)）。
->
-> 手动安装方式仍然提供，见[下文](#-方式二手动安装)。
+论文里的分式、课件里的求和、笔记里的上下标——看到公式就截图，想到公式就描述。公式助手在 Word 侧边栏完成识别、预览和插入，帮你把时间留给正文。
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### 截一张图
+
+粘贴截图、拖入图片，或上传文件。选择“仅公式”识别一个式子，也可以选择“全文”，连同周围的文字一起转录。
+
+</td>
+<td width="33%" valign="top">
+
+### 说一句话
+
+用中文描述分数、求和、上下标。按下 Enter，查看公式预览；懂 LaTeX，也可以直接粘贴或修改源码。
+
+</td>
+<td width="33%" valign="top">
+
+### 在 Word 里接着改
+
+点击“插入到 Word”，得到可编辑的原生公式。之后仍能在 Word 中继续修改结构、符号与内容。
+
+</td>
+</tr>
+</table>
+
+## 从描述到公式，看得见，也改得动
+
+<div align="center">
+  <img src="docs/screenshots/describe.png" alt="输入中文描述，生成巴塞尔求和公式，预览并编辑 LaTeX 后插入 Word" width="400" />
+  <p><sub>描述 → 预览 → 编辑 → 插入。一个侧边栏，完成整段流程。</sub></p>
+</div>
+
+## Word 打开，公式助手就在“开始”里
+
+**Windows 2.0 使用持久注册的原生加载项。** 安装一次后，从开始菜单启动 Word、使用快捷方式，或直接打开文档，都可以在编辑界面的 **开始 → 公式助手** 找到入口。点击打开右侧窗格，再次点击收起。
+
+日常使用无需先运行启动脚本、后台 Node 服务或 localhost 证书。多个文档窗口各有自己的窗格，内容插入到对应文档。
+
+<div align="center">
+  <img src="docs/screenshots/start-menu-new-document.png" alt="从 Windows 开始菜单中的 Word 快捷方式启动并新建文档，开始功能区右侧显示公式助手按钮" width="100%" />
+  <p><sub>本机真实截图：“文档1 - Word”的“开始”功能区右侧，可见 π 图标的“公式助手”。</sub></p>
+</div>
+
+## 三步开始使用
+
+| 步骤 | 操作 |
+| :--- | :--- |
+| **01 · 下载解压** | 下载 [Windows 安装包](https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip)，完整解压。 |
+| **02 · 双击安装** | 保存文档、关闭所有 Word 窗口，然后运行 **`Install.cmd`**。 |
+| **03 · 打开使用** | 正常打开 Word，新建或打开文档，点击 **开始 → 公式助手**，在设置中填写模型和 API Key。 |
+
+安装器自动识别 Word 的 32/64 位，安装到当前用户目录；缺少 WebView2 Runtime 时，会验证并安装微软官方组件。通常不需要管理员权限。
+
+**修复与卸载也有入口：** 关闭 Word 后运行 `Repair.cmd` 或 `Uninstall.cmd`。Windows“设置 → 应用”也可以卸载；修复和卸载均保留个人设置。更多说明见 [安装指南](docs/INSTALL.md)。
+
+> **兼容性：** 面向 Windows 10/11 桌面版 Word。本机已验证 64 位 Word `16.0.20430.20182`；包含 x86 组件，32 位 Office 尚未实机验证。Word 禁用项目、组织策略和用户隐藏的功能区需要按[安装指南](docs/INSTALL.md)处理。WPS、Mac 和 Word 网页版不适用此安装包。
+
+## 模型由你选择
+
+| 服务商预设 | 可配置内容 |
+| :--- | :--- |
+| DeepSeek · 智谱 GLM · 硅基流动 · 阿里云百炼 · OpenRouter | 分别配置识图模型和文本模型 |
+| 自定义 OpenAI 兼容接口 | 填写 API 地址、模型名称与 API Key |
+
+设置中提供连接与识图能力测试，也能查看单次、会话和累计 Token 用量。预设模型的实际可用性以服务商为准。
+
+**数据路径清楚：** 图片和描述直接发送给你配置的模型服务商，API Key 与设置保存在本机 WebView2 浏览器存储中。打开工具不会向文档写入测试内容。旧网页加载项升级到原生版后，需要重新填写一次设置。
+
+<details>
+<summary><strong>给开发者：构建、测试与实现</strong></summary>
+
+### 从源码安装
+
+双击仓库根目录的 `Install.cmd`，首次安装会自动编译缺失的发布文件。构建需要桌面 Office 的互操作程序集、Windows 自带的 .NET Framework 编译器，以及用于下载固定版本 WebView2 SDK 的网络连接。无需安装 .NET SDK；终端用户无需 Node.js。
+
+### 开发命令
+
+```powershell
+npm install
+npm test                  # 本地转换与消息桥回归测试
+npm run build:windows     # 生成 dist/FormulaCopilot-Windows.zip
+npm run test:windows      # 真实 Word 功能区、窗格、原生公式与多文档集成测试
+npm run test:install      # 卸载、重装、修复与设置保留验收
+npm run test:api          # 可选：付费 API 冒烟测试，需 DEEPSEEK_API_KEY
+```
+
+Word 集成测试前需安装原生版并关闭所有 Word 窗口。测试使用临时文档和本地生成内容，不调用付费模型 API；结束后关闭测试文档而不保存。测试专用的 WebView2 调试端口不会在日常启动时默认开启。
+
+### 转换链路
+
+```text
+截图 / 自然语言 → 模型接口 → LaTeX
+                               ↓
+                         Temml → MathML → OMML
+                               ↓
+                    Word 原生接口 → 可编辑公式
+```
+
+Windows 宿主使用 COM、原生任务窗格和 WebView2；界面为 HTML/CSS/JavaScript。全文模式直接构造包含文字、段落与 OMML 的 WordprocessingML，经 Flat OPC 插入文档。
+
+主要目录：`native/` 宿主、`src/` 界面、`scripts/` 构建安装、`test/` 验证。更多信息见 [宿主设计与调研](docs/native-architecture.md)。README 横幅可通过 `node scripts/build-readme-art.mjs` 重新生成。
+
+原 Office.js 网页加载项保留作开发用途：`npm start` 与 `manifest.xml`；参见[旧版开发说明](docs/legacy-web-addin.md)。Windows 原生版日常使用无需侧载。
+
+</details>
 
 ---
 
-## 功能
+<div align="center">
 
-- **识图转公式**：上传图片或直接 `Ctrl+V` 粘贴截图，自动识别为 LaTeX，可编辑后插入
-- **识别范围可选**：**仅公式**（只识别公式）或 **全文**（连同公式所在的上下文文字一并转录，公式以原生对象内嵌在文字中）；描述模式固定仅公式
-- **自然语言转公式**：用中文描述式子（如"y下标1等于sin x的三次方乘以cos x分之一"），回车生成
-- 插入的是 **Word 原生公式对象**（可二次编辑，不是图片）
-- **公式实时预览**（基于 Temml / MathML）
-- **多模型服务商**：DeepSeek（默认）/ 智谱 GLM / 硅基流动 / 阿里云百炼 Qwen / OpenRouter / 任意 OpenAI 兼容接口
-- **一键自检**：测试 API 连通性 + 模型是否真正支持识图
-- **Token 用量统计**：单次 / 会话 / 累计
-- 双深度兜底插入管线：OOXML 通道失败时自动切换 **HTML+MathML 通道**（Word 原生转换），最终兜底 LaTeX 文本 + `Alt+=` 提示
+**把公式交给助手，把注意力留给内容。**
 
-| 识图 | 设置 |
-| --- | --- |
-| ![识图](docs/screenshots/home.png) | ![设置](docs/screenshots/settings.png) |
+[下载 Windows 版](https://github.com/aNother1332/word-formula-copilot/releases/latest/download/FormulaCopilot-Windows.zip) · [反馈问题](https://github.com/aNother1332/word-formula-copilot/issues) · [MIT License](LICENSE)
 
-## 工作原理
+<sub>Temml · mathml2omml · Microsoft WebView2 · Microsoft Word</sub>
 
-```
-截图 / 描述
-    ↓  视觉模型（deepseek-flash 等，thinking 已关闭以保证稳定）
-  LaTeX
-    ├→ temml → MathML → mathml2omml → OMML ── insertOoxml / setSelectedDataAsync   （OOXML 通道）
-    ├→ MathML ──────────────────────────── setSelectedDataAsync(HTML)              （HTML 通道，Word 自动转公式）
-    └→ LaTeX 文本 + Alt+= 提示                                                      （最终兜底）
-```
-
-多级通道自动降级：哪条通道在你的 Office 构建上可用，就记住并优先使用它。
-
-## 安装
-
-### ⭐ 方式一：用 AI Agent 安装（推荐）
-
-把本仓库的地址交给 AI 编程代理，并告诉它"帮我把这个 Word 加载项装好"。仓库内自带：
-
-- `test/cdp-probe.mjs` 等诊断脚本（可直连任务窗格查看真实报错）
-- 本地 HTTPS 服务与自检逻辑
-- 完整的已知问题与修复记录（见下方"常见问题"）
-
-Agent 会自动完成：克隆 → `npm install` → 生成并信任 localhost 证书 → 启动本地服务 → 侧载进 Word → 遇到问题时读取诊断输出修复，并把 `start-word.bat` 设为日常启动入口。
-
-### 方式二：手动安装
-
-**前置要求**：Windows 10/11、[Node.js](https://nodejs.org) ≥ 18、Word 2019 / 2021 / 2024（永久版）或 Microsoft 365、网络可访问所选模型服务商。
-
-```bash
-git clone https://github.com/aNother1332/word-formula-copilot.git
-cd word-formula-copilot
-npm install
-```
-
-**1. 生成并信任本地证书**（Office 要求 HTTPS）：
-
-```bash
-mkdir certs
-openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
-  -keyout certs/localhost-key.pem -out certs/localhost-cert.pem \
-  -subj "//CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-certutil -user -addstore Root "%cd%\certs\localhost-cert.pem"
-```
-
-**2. 配置 API Key**：
-
-```bash
-copy src\user.config.example.js src\user.config.js
-# 编辑 src/user.config.js，填入你的 API Key（该文件已被 .gitignore 排除，不会上传）
-```
-也可以启动后在插件设置页里填写。
-
-**3. 启动本地服务**：
-
-```bash
-npm start
-```
-
-**4. 装载进 Word**（两种任选）：
-
-- **官方调试工具**（推荐，已在本项目环境实测）：
-  ```bash
-  npx -y office-addin-debugging start manifest.xml
-  ```
-  Word 会自动打开并加载插件。
-- **Word 内上传**：插入 → 获取加载项 → 我的加载项 → 上传我的加载项 → 选择 `manifest.xml`。
-  ⚠️ 该对话框需要联网加载微软商店内容，部分网络环境下会长时间无响应——遇到时请改用上面的命令行方式。
-
-**5. 配置服务商与模型**（设置页右上角齿轮），点"测试连接与识图能力"验证。
-
-### 日常启动（重要，请务必阅读）
-
-在部分 Office 版本上（**实测包括 Office 家庭版 2024**），开发者侧载的加载项**只在"装载命令执行后启动"的那一次 Word 会话里出现**——之后直接打开 Word，插件可能就消失了。这是 Office 侧载机制的版本差异，不是安装失败。
-
-为此仓库提供了启动脚本 **`start-word.bat`**：双击运行，它会自动完成装载并打开 Word（几秒钟）。**建议为它创建一个桌面快捷方式，作为每天使用插件的固定入口。** 若脚本检测到 Word 正在运行，会提示先完全退出再运行（侧载注册必须在 Word 启动那一刻就位）。
-
-> 技术原因：`Wef\Developer` 注册表侧载条目是一次性的，部分构建甚至会忽略它；而 `office-addin-debugging` 会生成一份与插件关联的临时文档来启动 Word，是目前实测最可靠的装载通道。
->
-> 替代做法：每次手动运行 `npx -y office-addin-debugging start manifest.xml`，效果相同。
-
-## 使用
-
-1. 截图后 `Ctrl+V` 粘贴到窗格（或点击虚线框上传图片）；识图模式下选择识别范围：**仅公式** 或 **全文**（转录公式及其上下文文字）
-2. 检查预览与内容（可直接修改）
-3. 光标放到 Word 里要插入的位置 → 点击 **插入到 Word**；描述模式下按 `Enter` 生成后再插入
-
-## 配置参考
-
-| 服务商 | 视觉模型（识图） | 文本模型（描述） | API 地址 |
-| --- | --- | --- | --- |
-| DeepSeek（默认） | `deepseek-flash` | `deepseek-chat` | `https://api.deepseek.com` |
-| 智谱 GLM | `glm-4.5v` | `glm-4.6` | `https://open.bigmodel.cn/api/paas/v4` |
-| 硅基流动 | `Qwen/Qwen2.5-VL-72B-Instruct` | `deepseek-ai/DeepSeek-V3` | `https://api.siliconflow.cn/v1` |
-| 阿里云百炼 | `qwen-vl-max` | `qwen-plus` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| OpenRouter | `google/gemini-2.5-flash` | 任意 | `https://openrouter.ai/api/v1` |
-
-> DeepSeek 的 `deepseek-flash` 是推理模型，本项目对其调用已关闭思考模式（`thinking: disabled`）以保证速度与稳定性；其他服务商请在设置中自行调整。
-
-## 常见问题
-
-- **平时直接打开 Word 看不到插件，只有跑过启动脚本才有**：这是开发者侧载机制的版本差异（实测于 Office 家庭版 2024），日常请使用 `start-word.bat`（建议创建桌面快捷方式）或每次手动运行装载命令。
-- **"获取加载项"对话框卡死**：该对话框会在线加载微软商店内容，国内网络常见。改用命令行 `npx office-addin-debugging start manifest.xml` 装载。
-- **插入的只是 LaTeX 文本不是公式**：说明你机器的 OOXML 写入通道异常（本项目在某 Office 构建上实测复现过，连普通段落都写入失败）。插件会自动改走 **HTML+MathML 通道**，由 Word 原生转换成公式对象；结果卡片下方的红色诊断框会显示每一层的详细报错。
-- **识别慢**：DeepSeek flash 已关闭思考模式（单次约 200~300 tokens）；如仍偏慢可换 Qwen-VL / GLM-4V。
-- **想改公式**：插入的是原生公式对象，直接点进去改；或改 LaTeX 后重新插入。
-- **卸载本地证书**：`certutil -user -delstore Root localhost`
-
-## 开发与测试
-
-```bash
-npm start                 # 启动本地服务（3000 HTTPS / 3100 HTTP）
-npm run test              # DeepSeek API 冒烟测试（需 DEEPSEEK_API_KEY 环境变量）
-node test/screenshot.mjs  # 重新生成 README 截图
-node test/cdp-probe.mjs   # 直连任务窗格 WebView2 检查内部状态（需调试端口）
-```
-
-技术栈：原生 HTML/CSS/JS（无框架）· [Office.js](https://learn.microsoft.com/office/dev/add-ins/overview/office-add-ins) · [Temml](https://temml.org)（LaTeX→MathML）· [mathml2omml](https://github.com/fiduswriter/mathml2omml)（MathML→OMML）· Node 本地 HTTPS 服务。
-
-## 更新日志
-
-- **v1.1.0**：识图新增"全文"识别范围（连同公式上下文一并转录插入，公式仍为原生对象）；移除行内/单行切换，统一为单行公式插入
-- **v1.0.0**：首个公开版本
-
-## License
-
-[MIT](LICENSE)
+</div>

@@ -1,6 +1,6 @@
 {
   "name": "word-formula-copilot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Word 加载项：识图/自然语言 → LaTeX → 插入公式",
   "main": "index.js",
   "directories": {
@@ -8,12 +8,16 @@
   },
   "scripts": {
     "start": "node server/serve.mjs",
-    "test": "node test/api-test.mjs",
+    "test": "node --test test/unit/*.test.mjs",
+    "test:api": "node test/api-test.mjs",
+    "build:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "test:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/native-startup.ps1 -Integration",
+    "test:install": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/native-install.ps1",
     "dev-server": "node -e \"setInterval(()=>{},1000)\""
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "mathml2omml": "^0.5.0",

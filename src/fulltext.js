@@ -42,3 +42,26 @@ export function fullTextToHtml(text, renderFormula) {
   }
   return '<p>' + body + '</p>';
 }
+
+// Windows COM host: build WordprocessingML directly, preserving paragraphs and
+// editable formulas without a clipboard round trip or an HTML import document.
+export function fullTextToWordXml(text, renderOmml) {
+  const w = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const m = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
+  let body = '<w:p>';
+  for (const seg of splitFormulaSegments(text)) {
+    if (seg.type !== 'text') {
+      const formula = renderOmml(seg.content.trim());
+      body += seg.type === 'display'
+        ? '</w:p><w:p><m:oMathPara>' + formula + '</m:oMathPara></w:p><w:p>'
+        : formula;
+      continue;
+    }
+    const lines = seg.content.replace(/\r\n?/g, '\n').split('\n');
+    lines.forEach((line, index) => {
+      if (index) body += '</w:p><w:p>';
+      if (line) body += '<w:r><w:t xml:space="preserve">' + escapeHtml(line) + '</w:t></w:r>';
+    });
+  }
+  return `<w:document xmlns:w="${w}" xmlns:m="${m}"><w:body>${body}</w:p></w:body></w:document>`;
+}
